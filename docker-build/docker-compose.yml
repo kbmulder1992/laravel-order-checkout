@@ -1,0 +1,59 @@
+version: '3.7'
+
+networks:
+  loc_network:
+    name: loc_network
+    ipam:
+      config:
+        - subnet: 172.100.0.0/24
+
+services:
+  mariadb:
+    image: mariadb
+    container_name: loc_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: q1w2e3r4t5y6
+      MYSQL_DATABASE: laravel_order_checkout
+    ports:
+      - "3306:3306"
+    networks:
+      - loc_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: loc-app:1.0
+    container_name: loc_app
+    restart: unless-stopped
+    working_dir: /var/www
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../:/var/www
+      - ./nginx-config:/etc/nginx/sites-enabled
+    networks:
+      - loc_network
+    depends_on:
+      - mariadb
+
+  maildev:
+    container_name: loc_maildev
+    image: djfarrelly/maildev
+    environment:
+      - VIRTUAL_HOST=mail.local
+    command: "bin/maildev --web 80 --smtp 25"
+    ports:
+      - "81:80"
+    networks:
+      - loc_network
+
+  redis:
+    container_name: loc_redis
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - loc_network

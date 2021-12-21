@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\CartService;
+use App\Services\CartServiceInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,6 +15,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->bind(
+            CartServiceInterface::class,
+            CartService::class
+        );
     }
 
     /**
